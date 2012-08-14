@@ -4,6 +4,10 @@ A nice, intuitive tag input plugin for jQuery, which degrades gracefully, when J
 
 This plugin has been created for Zootool: <http://zootool.com> and the Kirby CMS: <http://getkirby.com>
 
+## Demo: 
+
+http://getkirby.com/blog/panel-tags-field/demo
+
 ## Features
 
 - full keyboard navigation
@@ -93,10 +97,6 @@ You can simple add tags to the input field like this:
 	<input type="text" id="tags" name="tags" value="design, architecture, photography" />
 
 …which will by automatically converted to proper tag elements on load. 
-
-## Demo: 
-
-http://getkirby.com/blog/panel-tags-field/demo
 
 ## Todo: 
 
