@@ -1,185 +1,4 @@
 ###
-Simple autocomplete plugin
-with full keyboard navigation.
-works great with the tagbox plugin
-
-@author Bastian Allgeier <bastian@getkirby.com>
-@copyright Bastian Allgeier 2012
-@license MIT
-###
-(($) ->
-  $.autocomplete = (element, url, options) ->
-    defaults =
-      url: false
-      apply: (string) ->
-        $element.val string
-
-    plugin = this
-    plugin.settings = {}
-    $element = $(element)
-    element = element
-    plugin.init = ->
-      plugin.settings = $.extend({}, defaults, options)
-      plugin.input = $element
-      plugin.ignore = []
-      plugin.data = {}
-      plugin.open = false
-      plugin.load()
-      plugin.blocker = $("<div class=\"autocomplete-blocker\"></div>").css(
-        position: "fixed"
-        top: 0
-        left: 0
-        right: 0
-        bottom: 0
-        "z-index": 1999
-      ).hide()
-      plugin.box = $("<div class=\"autocomplete\"></div>").css("z-index", 2000)
-      plugin.ul = $("<ul></ul>")
-      plugin.blocker.click (e) ->
-        plugin.kill()
-        plugin.input.focus()
-        e.stopPropagation()
-
-      $element.keyup (e) ->
-        plugin.pos = plugin.selection()
-        switch e.keyCode
-          when 13 # enter
-            plugin.apply()
-          when 27 # esc
-            plugin.kill()
-          # up
-          when 38, 40 # down
-            false
-          when 39 # right
-            value = plugin.value()
-            plugin.apply()  if value.length > 0 and plugin.pos is plugin.input.val().length
-          when 188 # ,
-            plugin.apply()
-          else
-            plugin.complete $(this).val()
-
-      $element.keydown (e) ->
-        plugin.pos = plugin.selection()
-        switch e.keyCode
-          when 9 # tab
-            if plugin.value().length > 0
-              plugin.apply()
-              return false
-            else
-              return true
-          when 38 # up
-            plugin.prev()
-            false
-          when 40 # down
-            plugin.next()
-            false
-
-      plugin.box.click (e) ->
-        e.stopPropagation()
-
-      $("body").append plugin.box
-      $("body").append plugin.blocker
-      $(window).resize plugin.position
-      plugin.position()
-
-    plugin.load = ->
-      if typeof url is "object"
-        plugin.data = url
-      else
-        $.getJSON url, (result) ->
-          plugin.data = result
-
-
-    plugin.complete = (search) ->
-      plugin.kill()
-      plugin.position()
-      counter = 0
-      search = $.trim(search)
-      return false  if search.length is 0
-      reg = new RegExp("^" + search, "i")
-      result = plugin.data.filter((str) ->
-        str  if plugin.ignore.indexOf(str) is -1 and str.match(reg)
-      )
-      result = result.slice(0, 5)
-      $.each result, (i, string) ->
-        li = $("<li>" + string + "</li>")
-        li.click ->
-          plugin.apply string
-
-        li.mouseover ->
-          plugin.ul.find(".selected").removeClass "selected"
-          li.addClass "over"
-
-        li.mouseout ->
-          li.removeClass "over"
-
-        plugin.ul.append li
-        li.addClass "first selected"  if counter is 0
-        counter++
-
-      if counter > 0
-        plugin.box.append plugin.ul.show()
-        plugin.blocker.show()
-        plugin.open = true
-
-    plugin.kill = ->
-      plugin.blocker.hide()
-      plugin.ul.empty().hide()
-      plugin.open = false
-
-    plugin.apply = (string) ->
-      string = plugin.value()  unless string
-      plugin.settings.apply.call plugin, string
-
-    plugin.value = ->
-      plugin.selected().text()
-
-    plugin.selected = ->
-      plugin.ul.find ".selected"
-
-    plugin.select = (element) ->
-      plugin.deselect()
-      element.addClass "selected"
-
-    plugin.deselect = ->
-      plugin.selected().removeClass "selected"
-
-    plugin.prev = ->
-      sel = plugin.selected()
-      prev = sel.prev()
-      plugin.select prev  if prev.length > 0
-
-    plugin.next = ->
-      sel = plugin.selected()
-      next = (if (sel.length > 0) then sel.next() else plugin.ul.find("li:first-child"))
-      plugin.select next  if next.length > 0
-
-    plugin.selection = ->
-      i = plugin.input[0]
-      v = plugin.val
-      return i.selectionStart  unless i.createTextRange
-      r = document.selection.createRange().duplicate()
-      r.moveEnd "character", v.length
-      return v.length  if r.text is ""
-      v.lastIndexOf r.text
-
-    plugin.position = ->
-      pos = $element.offset()
-      height = $element.innerHeight()
-      pos.top = pos.top + height + 10
-      plugin.box.css pos
-
-    plugin.init()
-
-  $.fn.autocomplete = (url, options) ->
-    @each ->
-      if `undefined` is $(this).data("autocomplete")
-        plugin = new $.autocomplete(this, url, options)
-        $(this).data "autocomplete", plugin
-
-) jQuery
-
-###
 Tag input plugin
 works great with the autocomplete plugin
 
@@ -187,11 +6,10 @@ works great with the autocomplete plugin
 @copyright Bastian Allgeier 2012
 @license MIT
 ###
+
 (($) ->
   $.tagbox = (element, options) ->
     defaults =
-      url: false
-      autocomplete: {}
       lowercase: true
       classname: "tagbox"
       separator: ", "
@@ -213,7 +31,6 @@ works great with the autocomplete plugin
       onReady: ->
 
     plugin = this
-    autocomplete = null
     plugin.settings = {}
     $element = $(element)
     element = element
@@ -230,25 +47,7 @@ works great with the autocomplete plugin
       plugin.input = plugin.box.find("input").css("width", 20)
       plugin.bhits = 0
       plugin.lhits = 0
-      if plugin.settings.url
-        autocompleteDefaults = apply: (string) ->
-          plugin.add string
-          @kill()
-          plugin.input.focus()
 
-
-        # initialize the autocomplete plugins with a default event
-        plugin.input.autocomplete plugin.settings.url, $.extend({}, autocompleteDefaults, plugin.settings.autocomplete)
-
-        # store the autocomplete plugin object
-        plugin.autocomplete = plugin.input.data("autocomplete")
-
-        # add autocomplete custom events to the tagbox plugin
-        plugin.settings.onAdd = (tag) ->
-          plugin.autocomplete.ignore = plugin.serialize()
-
-        plugin.settings.onRemove = (tag) ->
-          plugin.autocomplete.ignore = plugin.serialize()
       plugin.origin.before plugin.box
       plugin.measure = $("<div style=\"display: inline\" />").css(
         "font-size": plugin.input.css("font-size")
@@ -294,7 +93,9 @@ works great with the autocomplete plugin
       # enter
       # ,
       $(document).keydown((e) ->
+
         return true  unless plugin.focused
+
         switch e.keyCode
           when 8
             unless plugin.input.focused
@@ -334,8 +135,9 @@ works great with the autocomplete plugin
               return false
           when 13, 188
             if plugin.input.focused
-              plugin.add plugin.val  unless plugin.settings.autocomplete
+              plugin.add plugin.val
               return false
+
       ).click (e) ->
         plugin.add plugin.val  if plugin.val.length > 0
 
