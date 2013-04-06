@@ -17,23 +17,19 @@ works great with the autocomplete plugin
       minLength: 1
       maxLength: 140
       keydown: ->
-
       onAdd: ->
-
       onRemove: ->
-
       onDuplicate: ->
         plugin.input.focus()
-
       onInvalid: ->
         plugin.input.focus()
-
       onReady: ->
 
     plugin = this
     plugin.settings = {}
     $element = $(element)
     element = element
+
     plugin.init = ->
       plugin.settings = $.extend({}, defaults, options)
       $name = $element.attr("name")
