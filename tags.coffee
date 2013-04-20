@@ -235,7 +235,7 @@ works great with the autocomplete plugin
       plugin.input.val ""
       if typeof element is "string"
         element = plugin.find(element)
-        return false  unless element
+        return false unless element.length
       selected = plugin.selected()
       element = selected.first()  if not element and selected.length > 0
       previous = plugin.previous(true)
